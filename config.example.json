@@ -1,0 +1,7 @@
+{
+  "name": "Ceiling fan",
+  "fanHost": "192.168.1.100",
+  "fanMac": "02:00:00:00:00:01",
+  "port": 8787,
+  "timeoutMs": 8000
+}

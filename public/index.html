@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f4f5f0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Fan Control">
+  <title>Fan Control</title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <header><a class="brand" href="/" aria-label="Fan Control home"><img src="/icon.svg" alt="" width="28" height="28"><span>Fan Control</span></a><div class="header-actions"><button id="home-open" class="home-button">Apple Home</button><button id="help-open" class="help-button" aria-label="Open connection and iPhone setup">?</button></div></header>
+    <main>
+      <div class="heading"><h1 id="room-name">Ceiling fan</h1><div id="connection" class="connection" role="status"><span class="dot"></span><span id="connection-label">Connecting</span></div></div>
+      <div id="notice" class="notice" hidden><div><strong id="notice-title"></strong><p id="notice-text"></p></div><button id="retry">Retry ↻</button></div>
+      <div class="control-panel">
+        <section class="fan-section" aria-label="Fan controls">
+          <button id="fan-power" class="power-control" role="switch" aria-label="Fan power" aria-checked="false" disabled>
+            <span class="device-icon fan-icon"><svg viewBox="0 0 100 100" aria-hidden="true"><g><path d="M49 45C20 39 27 9 47 11C69 13 65 33 54 45Z"/><path d="M49 45C20 39 27 9 47 11C69 13 65 33 54 45Z" transform="rotate(120 50 50)"/><path d="M49 45C20 39 27 9 47 11C69 13 65 33 54 45Z" transform="rotate(240 50 50)"/><circle cx="50" cy="50" r="8"/></g></svg></span>
+            <span class="device-title"><strong>Fan</strong><small id="fan-status">Checking…</small></span><span class="power-indicator"><span id="fan-power-label">—</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9M7 5.5a8 8 0 1 0 10 0"/></svg></span>
+          </button>
+          <div class="slider-label"><div class="slider-title"><label id="speed-label" for="fan-speed">Speed</label><output id="fan-speed-value" for="fan-speed">—</output></div><button id="breeze" aria-pressed="false" aria-label="Breeze mode" title="Vary fan speed like a natural breeze" disabled><span aria-hidden="true">≈</span> Breeze</button></div>
+          <input id="fan-speed" type="range" min="0" max="6" step="1" value="0" aria-valuetext="Unknown" disabled>
+          <div class="range-ends"><span>Off</span><span id="speed-low-label">Low</span><span id="speed-high-label">High</span></div>
+          <div class="direction-options" role="group" aria-label="Fan direction"><button id="direction-forward" aria-pressed="false" disabled><span class="direction-arrow" aria-hidden="true">↓</span><span>Summer<small>Air down</small></span><span class="radio" aria-hidden="true"></span></button><button id="direction-reverse" aria-pressed="false" disabled><span class="direction-arrow" aria-hidden="true">↑</span><span>Winter<small>Air up</small></span><span class="radio" aria-hidden="true"></span></button></div>
+        </section>
+        <section class="light-section" aria-label="Light controls">
+          <button id="light-power" class="power-control" role="switch" aria-label="Light power" aria-checked="false" disabled><span class="device-icon bulb-icon"><svg viewBox="0 0 40 44" aria-hidden="true"><path d="M13 27c-4-3-6-6-6-11a13 13 0 0 1 26 0c0 5-2 8-6 11-2 2-2 4-2 6H15c0-2 0-4-2-6Z"/><path d="M16 38h8M18 42h4"/></svg></span><span class="device-title"><strong>Light</strong><small id="light-status">Checking…</small></span><span class="power-indicator"><span id="light-power-label">—</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9M7 5.5a8 8 0 1 0 10 0"/></svg></span></button>
+          <div class="slider-label"><label for="light-brightness">Brightness</label><output id="light-brightness-value" for="light-brightness">—</output></div>
+          <input id="light-brightness" type="range" min="0" max="100" step="1" value="0" aria-valuetext="Unknown" disabled>
+          <div class="range-ends brightness-ends"><span>Off</span><span>100%</span></div>
+        </section>
+      </div>
+      <footer><span>Tap an icon to turn on or off.</span><button id="refresh" aria-label="Refresh fan status">↻</button></footer>
+      <p id="feedback" role="status" aria-live="polite"></p>
+    </main>
+  </div>
+  <dialog id="help"><div class="dialog-top"><span class="eyebrow">AT HOME. ON YOUR NETWORK.</span><button id="help-close" class="close" aria-label="Close setup">×</button></div><h2>One tap from your iPhone.</h2><p>Open this address in Safari while you’re at home:</p><div id="phone-links" class="phone-links"></div><p>Tap <strong>Share → Add to Home Screen</strong>. On your Mac, open <strong>Fan Control.app</strong>.</p><div class="help-note"><strong>The Mac is your bridge.</strong><p>Keep Fan Control open and your Mac awake. Quitting the app stops iPhone access and Apple Home controls; the fan keeps its current settings.</p></div><details><summary>Connection details</summary><dl><dt>Fan address</dt><dd id="fan-address">—</dd><dt>Fan MAC</dt><dd id="fan-mac">—</dd><dt>Last response</dt><dd id="last-response">Not yet connected</dd></dl><p>If the fan is on an isolated IoT network, allow this Mac to reach the fan on TCP port 80. The iPhone must be able to reach the Mac on port 8787.</p><p>Local access only. Devices allowed to reach this page on your home network can use its controls.</p></details></dialog>
+  <dialog id="home-setup" aria-labelledby="home-title">
+    <div class="dialog-top"><span class="eyebrow">WORKS WITH YOUR APPLE TV</span><button id="home-close" class="close" aria-label="Close Apple Home setup">×</button></div>
+    <h2 id="home-title">Add to Apple Home.</h2>
+    <p id="home-status" role="status">Checking the bridge…</p>
+    <div id="home-pairing" hidden>
+      <img id="home-qr" class="home-qr" alt="Apple Home pairing QR code" width="220" height="220">
+      <p class="home-code"><span>Setup code</span><strong id="home-code"></strong></p>
+      <ol class="home-steps"><li>On your iPhone, open <strong>Home → + → Add Accessory</strong>.</li><li>Scan this code. If Home says “Uncertified Accessory,” choose <strong>Add Anyway</strong> for this local bridge.</li><li>Add <strong>Ceiling Fan</strong> and <strong>Ceiling Light</strong> to your room.</li></ol>
+    </div>
+    <div id="home-paired" hidden><div class="home-success">Fan and light paired</div><p>They are now available in Home for controls, scenes, and Siri.</p><p>To automate them, open <strong>Home → Automation → +</strong> on your iPhone, choose a time or trigger, then select the fan or light.</p></div>
+    <div class="help-note"><strong>Keep this app open and your Mac awake.</strong><p>Your Apple TV sends Home commands through this Mac. Closing Fan Control makes these Home accessories unavailable. The fan’s existing schedule stays on the fan.</p></div>
+    <details><summary>Having trouble pairing?</summary><p>Allow Local Network access if macOS asks. For the first pairing, put the iPhone and Mac on the same network. Your Apple TV also needs to reach this Mac for automations.</p><p>If your IoT network is isolated, HomeKit needs local discovery (mDNS) and TCP port 51826 between the Apple devices and this Mac. No router settings have been changed.</p></details>
+  </dialog>
+</body>
+</html>

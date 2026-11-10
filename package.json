@@ -1,0 +1,23 @@
+{
+  "name": "modern-forms-local-control",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A small, local controller for one Modern Forms ceiling fan.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test",
+    "open": "node scripts/service.mjs start --open",
+    "stop": "node scripts/service.mjs stop",
+    "diagnose": "node scripts/diagnose.mjs",
+    "inspect-schedule": "node scripts/inspect-schedule.mjs",
+    "build:mac": "node scripts/build-mac-app.mjs"
+  },
+  "dependencies": {
+    "hap-nodejs": "0.11.2",
+    "qrcode": "1.5.4"
+  }
+}

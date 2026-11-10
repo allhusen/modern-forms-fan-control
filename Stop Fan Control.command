@@ -1,0 +1,5 @@
+#!/bin/zsh
+set -eu
+cd -- "${0:A:h}"
+export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+node scripts/service.mjs stop

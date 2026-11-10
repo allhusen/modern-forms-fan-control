@@ -1,0 +1,12 @@
+.runtime/
+.DS_Store
+node_modules/
+test-results/
+dist/
+Fan Control.app
+config.json
+.env
+.env.*
+*.log
+homekit/
+schedule-backups/
