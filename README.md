@@ -11,6 +11,7 @@ Independent project; not affiliated with or endorsed by WAC Lighting, Modern For
 - Fan power, six steady speeds, and summer/winter direction.
 - Light power and brightness.
 - Breeze mode with Gentle, Medium, and Strong settings on supported fans.
+- An in-app schedule editor with weekdays, fixed times or sunset, brightness, Breeze, and optional off timers.
 - Separate fan and light accessories in Apple Home, including remembered speed and brightness across power changes.
 - A native Mac window that starts and stops its bundled local server and HomeKit bridge.
 - A responsive web interface for an iPhone on the same network.
@@ -51,6 +52,18 @@ Keep the Mac awake and the app running for iPhone access and Home automations. T
 - Summer sends `forward`; winter sends `reverse`. The fan may pause while reversing.
 - Failed requests show the last known state. Every control request verifies the fan's identity and reads back the result before reporting success.
 
+## Schedules
+
+Open **Schedules → Add schedule**. Choose the days and either a fixed time or sunset, then select what to do with the light and fan. Each can be left unchanged, turned on, or turned off. Light-on actions can set brightness; fan-on actions can preserve the current speed and Breeze mode or choose new settings. **Turn off after** switches off only devices that this schedule turned on.
+
+For sunset, open **Location & time → Use my location** in the Mac app, or enter approximate town coordinates. Location is requested only when you press that button. SunCalc calculates sunset locally without an online service. All schedules use the time zone shown in settings.
+
+Keep the app open and Mac awake. Scheduling checks every ten seconds; an action more than one minute late is skipped, and earlier starts are not replayed when reopening the app. A pending off timer survives an app restart, but is also skipped if more than one minute late. Disabling, editing, or deleting a schedule cancels its pending off timer. An off timer still applies after manual adjustments. Recent activity shows completed, missed, and failed actions. Unconfirmed device writes are never automatically retried.
+
+Schedules follow local daylight saving time. A clock time skipped by the spring transition does not run that day; a repeated autumn clock time runs once. Days without a sunset have no sunset event. The editor starts empty and leaves the fan's onboard schedule and Adaptive Learning unchanged. App schedules and Apple Home or manufacturer automations operate independently, so avoid conflicting rules.
+
+Schedules, approximate location, and recent activity stay in `~/Library/Application Support/Fan Control/schedules.json`, alongside your existing configuration and HomeKit pairings. Updating the app preserves them. Development mode keeps a separate file at `.runtime/schedules.json`. Do not share or commit those files. A damaged file is preserved and scheduling pauses instead of silently resetting it.
+
 ## Apple Home
 
 Click **Apple Home** in the Mac app to display its pairing QR code. On the iPhone, choose **Home → + → Add Accessory**, scan the code, and add **Ceiling Fan** and **Ceiling Light**. Home may ask you to choose **Add Anyway** for this uncertified accessory.
@@ -78,9 +91,15 @@ npm start                 # Development web server; no HomeKit bridge
 npm run open              # Launch the development server and browser
 npm run stop              # Stop the development server
 npm run diagnose          # Read-only connection and identity check
-npm test                  # Tests with simulated devices; no real fan commands
+npm test                  # Type checks and simulated-device tests; no real fan commands
+npm run check             # Strict TypeScript and command contract checks
+npm run build             # Compile the controller into build/
+npm run format:check      # Check consistent source formatting
+npm run format            # Apply source formatting
 npm run inspect-schedule  # Read-only inspection of the fan's stored schedule
 ```
+
+The controller, HTTP API, and HomeKit bridge are written in strict TypeScript. Browser UI and development scripts use JavaScript. The npm commands compile the controller when needed.
 
 The `.command` launchers also run the development server, which requires a separate Node.js installation. Do not run it alongside the native app on the same port.
 
@@ -88,7 +107,7 @@ The browser polls while visible; the HomeKit bridge polls while the app runs. De
 
 Native logs are in `~/Library/Application Support/Fan Control/controller.log`. Development logs and diagnostic snapshots belong in the ignored `.runtime/` directory. If the fan is unreachable, check its wall power, Wi-Fi, client isolation, and macOS Local Network permission.
 
-There is no schedule editor yet. The schedule inspector reports an experimental interpretation of the opaque device data and never writes schedules. Existing device schedules and Adaptive Learning are separate from Apple Home automations.
+The schedule inspector reports an experimental interpretation of the fan's opaque onboard schedule data and never writes it. The app's schedule editor uses ordinary verified control commands instead of that unverified format.
 
 ## Protocol and dependencies
 
@@ -96,6 +115,14 @@ The controller uses the manufacturer's [WAC / Modern Forms local IP API](https:/
 
 WAC's API is subject to its [API License Agreement](https://waclighting-images.s3.amazonaws.com/developer/WAC_API_License_Agreement_21.10.2021.pdf). This project does not grant rights to WAC documentation, trademarks, or APIs.
 
-Apple Home support uses [HAP-NodeJS](https://github.com/homebridge/HAP-NodeJS), with QR codes generated by [node-qrcode](https://github.com/soldair/node-qrcode). Their respective dependency licenses apply. Native app icons and UI assets are included in this repository.
+Apple Home support uses [HAP-NodeJS](https://github.com/homebridge/HAP-NodeJS), with QR codes generated by [node-qrcode](https://github.com/soldair/node-qrcode). Sunset calculations use [SunCalc](https://github.com/mourner/suncalc). Their respective dependency licenses apply. Native app icons and UI assets are included in this repository.
 
 Bug reports, compatibility reports, and contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Disclaimer
+
+Fan Control is an independent project, not affiliated with, endorsed by, or supported by WAC Lighting, Modern Forms, or Apple. Product names and trademarks belong to their respective owners and are used to identify compatibility. The Apple Home bridge is not Apple-certified.
+
+This software is provided “as is,” without warranty. Compatibility has been tested on limited hardware and may change with device firmware updates. Use it at your own risk.
+
+Any license for this project's original code and assets does not grant rights to manufacturer APIs, firmware, documentation, or trademarks. Dependencies retain their own licenses; applicable WAC API terms remain separate.

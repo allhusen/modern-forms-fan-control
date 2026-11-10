@@ -8,16 +8,27 @@
     "node": ">=22"
   },
   "scripts": {
-    "start": "node server.mjs",
-    "test": "node --test",
-    "open": "node scripts/service.mjs start --open",
-    "stop": "node scripts/service.mjs stop",
-    "diagnose": "node scripts/diagnose.mjs",
-    "inspect-schedule": "node scripts/inspect-schedule.mjs",
-    "build:mac": "node scripts/build-mac-app.mjs"
+    "start": "npm run build && node build/server.js",
+    "test": "npm run check && npm run build && node --test",
+    "open": "npm run build && node scripts/service.mjs start --open",
+    "stop": "npm run build && node scripts/service.mjs stop",
+    "diagnose": "npm run build && node scripts/diagnose.mjs",
+    "inspect-schedule": "npm run build && node scripts/inspect-schedule.mjs",
+    "build:mac": "npm run build && node scripts/build-mac-app.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.check.json"
   },
   "dependencies": {
     "hap-nodejs": "0.11.2",
-    "qrcode": "1.5.4"
+    "qrcode": "1.5.4",
+    "suncalc": "2.1.3"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "@types/qrcode": "1.5.6",
+    "prettier": "3.9.10",
+    "typescript": "7.0.2"
   }
 }

@@ -1,5 +1,6 @@
-import { loadConfig, localAddresses } from '../server.mjs';
-import { Fan } from '../lib/fan.mjs';
+import { loadConfig } from '../build/lib/config.js';
+import { localAddresses } from '../build/lib/network.js';
+import { Fan } from '../build/lib/fan.js';
 const config = await loadConfig();
 console.log('Mac addresses:', localAddresses().join(', '));
 console.log('Fan:', config.fanHost, 'MAC:', config.fanMac);
@@ -9,6 +10,8 @@ try {
   console.log('Verified fan identity. Current state:', JSON.stringify(state.state, null, 2));
 } catch (error) {
   console.error(error.message);
-  console.error('If the Mac is on the same Wi-Fi, check macOS Local Network permission for the app running this command, Wi-Fi client isolation, and fan power.');
+  console.error(
+    'If the Mac is on the same Wi-Fi, check macOS Local Network permission for the app running this command, Wi-Fi client isolation, and fan power.',
+  );
   process.exitCode = 1;
 }

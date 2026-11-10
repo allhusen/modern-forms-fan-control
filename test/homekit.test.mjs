@@ -1,25 +1,48 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, stat } from 'node:fs/promises';
+import { mkdtemp, rm, stat, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import hap from 'hap-nodejs';
-import { brightnessCommand, speedCommand, speedPercent, createAccessories, loadIdentity } from '../lib/homekit.mjs';
+import {
+  brightnessCommand,
+  speedCommand,
+  speedPercent,
+  createAccessories,
+  loadIdentity,
+} from '../build/lib/homekit.js';
 
 const C = hap.Characteristic;
 
 test('Home speeds map to six physical steps, with zero only switching power off', () => {
   assert.deepEqual(speedCommand(0), { fanOn: false });
-  for (const [percent, speed] of [[1, 1], [17, 1], [33, 2], [50, 3], [67, 4], [83, 5], [100, 6]]) {
+  for (const [percent, speed] of [
+    [1, 1],
+    [17, 1],
+    [33, 2],
+    [50, 3],
+    [67, 4],
+    [83, 5],
+    [100, 6],
+  ]) {
     assert.deepEqual(speedCommand(percent), { fanOn: true, fanSpeed: speed });
   }
   for (const value of [-1, 101, NaN, '50', null]) assert.throws(() => speedCommand(value));
 });
 
 test('Home speed respects Breeze and reports its actual strength', () => {
-  for (const [percent, strength] of [[1, 1], [33, 1], [50, 2], [67, 2], [100, 3]]) {
+  for (const [percent, strength] of [
+    [1, 1],
+    [33, 1],
+    [50, 2],
+    [67, 2],
+    [100, 3],
+  ]) {
     assert.deepEqual(speedCommand(percent, { wind: true }), { fanOn: true, windSpeed: strength });
-    assert.equal(speedPercent({ fanOn: true, wind: true, windSpeed: strength, fanSpeed: 6 }), Math.round(strength * 100 / 3));
+    assert.equal(
+      speedPercent({ fanOn: true, wind: true, windSpeed: strength, fanSpeed: 6 }),
+      Math.round((strength * 100) / 3),
+    );
   }
   assert.deepEqual(speedCommand(0, { wind: true, windSpeed: 2 }), { fanOn: false });
   assert.equal(speedPercent({ fanOn: false, wind: true, windSpeed: 2 }), 67);
@@ -27,12 +50,21 @@ test('Home speed respects Breeze and reports its actual strength', () => {
 
 for (const wind of [false, true]) {
   test(`Home remembers ${wind ? 'Breeze strength' : 'steady speed'} across power cycles and bridge restarts`, async () => {
-    let state = { fanOn: true, fanSpeed: 3, wind, windSpeed: 1, lightOn: false, lightBrightness: 70 };
+    let state = {
+      fanOn: true,
+      fanSpeed: 3,
+      wind,
+      windSpeed: 1,
+      lightOn: false,
+      lightBrightness: 70,
+    };
     const expectedPercent = wind ? 33 : 50;
     const commands = [];
     const fan = {
       snapshot: () => ({ online: true, state }),
-      async read() { return this.snapshot(); },
+      async read() {
+        return this.snapshot();
+      },
       async write(command) {
         if (typeof command === 'function') command = command(state);
         commands.push(command);
@@ -48,16 +80,31 @@ for (const wind of [false, true]) {
     await power().handleSetRequest(C.Active.INACTIVE);
     assert.deepEqual(commands.at(-1), { fanOn: false });
     assert.equal(speed().value, expectedPercent, 'power-off notification keeps the selected speed');
-    assert.equal(await speed().handleGetRequest(), expectedPercent, 'Home can read the setting while off');
+    assert.equal(
+      await speed().handleGetRequest(),
+      expectedPercent,
+      'Home can read the setting while off',
+    );
 
     bridge = createAccessories(config, fan);
     bridge.update(fan.snapshot());
     assert.equal(await power().handleGetRequest(), C.Active.INACTIVE);
-    assert.equal(await speed().handleGetRequest(), expectedPercent, 'restart preserves the device setting');
+    assert.equal(
+      await speed().handleGetRequest(),
+      expectedPercent,
+      'restart preserves the device setting',
+    );
     // Home sends both RotationSpeed and Active when switching this fan on.
     await speed().handleSetRequest(await speed().handleGetRequest());
     await power().handleSetRequest(C.Active.ACTIVE);
-    assert.deepEqual(state, { fanOn: true, fanSpeed: 3, wind, windSpeed: 1, lightOn: false, lightBrightness: 70 });
+    assert.deepEqual(state, {
+      fanOn: true,
+      fanSpeed: 3,
+      wind,
+      windSpeed: 1,
+      lightOn: false,
+      lightBrightness: 70,
+    });
 
     await speed().handleSetRequest(0);
     bridge.update(fan.snapshot());
@@ -65,7 +112,11 @@ for (const wind of [false, true]) {
     assert.equal(speed().value, expectedPercent, 'slider-off also retains the setting on refresh');
     await speed().handleSetRequest(100);
     assert.equal(state.fanOn, true);
-    assert.equal(state[wind ? 'windSpeed' : 'fanSpeed'], wind ? 3 : 6, 'an explicit maximum-speed choice still works');
+    assert.equal(
+      state[wind ? 'windSpeed' : 'fanSpeed'],
+      wind ? 3 : 6,
+      'an explicit maximum-speed choice still works',
+    );
   });
 }
 
@@ -76,13 +127,29 @@ test('Home dimming preserves the remembered brightness when switched off', () =>
 });
 
 test('real HomeKit characteristic handlers control only the requested simulated state', async () => {
-  let state = { fanOn: true, fanSpeed: 6, wind: false, windSpeed: 2, lightOn: true, lightBrightness: 66 };
+  let state = {
+    fanOn: true,
+    fanSpeed: 6,
+    wind: false,
+    windSpeed: 2,
+    lightOn: true,
+    lightBrightness: 66,
+  };
   const commands = [];
   let fail = false;
   const fan = {
     snapshot: () => ({ online: !fail, state }),
-    async read() { if (fail) throw new Error('offline'); return this.snapshot(); },
-    async write(command) { if (fail) throw new Error('offline'); if (typeof command === 'function') command = command(state); commands.push(command); state = { ...state, ...command }; return this.snapshot(); },
+    async read() {
+      if (fail) throw new Error('offline');
+      return this.snapshot();
+    },
+    async write(command) {
+      if (fail) throw new Error('offline');
+      if (typeof command === 'function') command = command(state);
+      commands.push(command);
+      state = { ...state, ...command };
+      return this.snapshot();
+    },
   };
   const { fanService, lightService } = createAccessories({ fanMac: '00:00:00:00:00:01' }, fan);
   await fanService.getCharacteristic(C.RotationSpeed).handleSetRequest(50);
@@ -124,5 +191,22 @@ test('HomeKit identity and pairing code survive restarts in a private file', asy
     assert.match(first.pincode, /^\d{3}-\d{2}-\d{3}$/);
     assert.match(first.setupID, /^[A-Z0-9]{4}$/);
     assert.equal((await stat(join(directory, 'bridge.json'))).mode & 0o777, 0o600);
-  } finally { await rm(directory, { recursive: true }); }
+  } finally {
+    await rm(directory, { recursive: true });
+  }
+});
+
+test('a damaged HomeKit identity is preserved and reported without printing its contents', async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'fan-homekit-invalid-'));
+  t.after(() => rm(directory, { recursive: true }));
+  const file = join(directory, 'bridge.json');
+  for (const saved of ['{"pincode":"private-value",', '{}', 'null']) {
+    await writeFile(file, saved);
+    await assert.rejects(loadIdentity(directory), (error) => {
+      assert.match(error.message, /saved Apple Home identity/);
+      assert.doesNotMatch(error.message, /private-value/);
+      return true;
+    });
+    assert.equal(await readFile(file, 'utf8'), saved);
+  }
 });

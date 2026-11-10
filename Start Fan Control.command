@@ -7,4 +7,4 @@ if ! command -v node >/dev/null; then
   read '?Press Return to close.'
   exit 1
 fi
-node scripts/service.mjs start --open || { read '?Press Return to close.'; exit 1; }
+npm run open || { read '?Press Return to close.'; exit 1; }

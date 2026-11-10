@@ -4,8 +4,8 @@
 <key>CFBundleName</key><string>Fan Control</string>
 <key>CFBundleDisplayName</key><string>Fan Control</string>
 <key>CFBundleIdentifier</key><string>local.home.fan-control</string>
-<key>CFBundleVersion</key><string>2</string>
-<key>CFBundleShortVersionString</key><string>2.0</string>
+<key>CFBundleVersion</key><string>4</string>
+<key>CFBundleShortVersionString</key><string>2.1.1</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleExecutable</key><string>FanControl</string>
 <key>CFBundleIconFile</key><string>FanControl.icns</string>
@@ -13,5 +13,7 @@
 <key>NSHighResolutionCapable</key><true/>
 <key>NSAppTransportSecurity</key><dict><key>NSAllowsLocalNetworking</key><true/></dict>
 <key>NSLocalNetworkUsageDescription</key><string>Fan Control connects to your ceiling fan and makes its fan and light controls available in Apple Home.</string>
+<key>NSLocationUsageDescription</key><string>Fan Control uses your approximate location to calculate sunset for your schedules. The location is saved only on this Mac.</string>
+<key>NSLocationWhenInUseUsageDescription</key><string>Fan Control uses your approximate location to calculate sunset for your schedules. The location is saved only on this Mac.</string>
 <key>NSBonjourServices</key><array><string>_hap._tcp</string></array>
 </dict></plist>

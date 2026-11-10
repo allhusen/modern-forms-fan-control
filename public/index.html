@@ -1,60 +1,455 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#f4f5f0">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Fan Control">
-  <title>Fan Control</title>
-  <link rel="icon" href="/icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="stylesheet" href="/style.css">
-  <script src="/app.js" defer></script>
-</head>
-<body>
-  <div class="shell">
-    <header><a class="brand" href="/" aria-label="Fan Control home"><img src="/icon.svg" alt="" width="28" height="28"><span>Fan Control</span></a><div class="header-actions"><button id="home-open" class="home-button">Apple Home</button><button id="help-open" class="help-button" aria-label="Open connection and iPhone setup">?</button></div></header>
-    <main>
-      <div class="heading"><h1 id="room-name">Ceiling fan</h1><div id="connection" class="connection" role="status"><span class="dot"></span><span id="connection-label">Connecting</span></div></div>
-      <div id="notice" class="notice" hidden><div><strong id="notice-title"></strong><p id="notice-text"></p></div><button id="retry">Retry ↻</button></div>
-      <div class="control-panel">
-        <section class="fan-section" aria-label="Fan controls">
-          <button id="fan-power" class="power-control" role="switch" aria-label="Fan power" aria-checked="false" disabled>
-            <span class="device-icon fan-icon"><svg viewBox="0 0 100 100" aria-hidden="true"><g><path d="M49 45C20 39 27 9 47 11C69 13 65 33 54 45Z"/><path d="M49 45C20 39 27 9 47 11C69 13 65 33 54 45Z" transform="rotate(120 50 50)"/><path d="M49 45C20 39 27 9 47 11C69 13 65 33 54 45Z" transform="rotate(240 50 50)"/><circle cx="50" cy="50" r="8"/></g></svg></span>
-            <span class="device-title"><strong>Fan</strong><small id="fan-status">Checking…</small></span><span class="power-indicator"><span id="fan-power-label">—</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9M7 5.5a8 8 0 1 0 10 0"/></svg></span>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f4f5f0" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Fan Control" />
+    <title>Fan Control</title>
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/schedules.css" />
+    <script src="/app.js" type="module"></script>
+  </head>
+  <body>
+    <div class="shell">
+      <header>
+        <a class="brand" href="/" aria-label="Fan Control home"
+          ><img src="/icon.svg" alt="" width="28" height="28" /><span>Fan Control</span></a
+        >
+        <div class="header-actions">
+          <button id="home-open" class="home-button">Apple Home</button
+          ><button id="help-open" class="help-button" aria-label="Open connection and iPhone setup">
+            ?
           </button>
-          <div class="slider-label"><div class="slider-title"><label id="speed-label" for="fan-speed">Speed</label><output id="fan-speed-value" for="fan-speed">—</output></div><button id="breeze" aria-pressed="false" aria-label="Breeze mode" title="Vary fan speed like a natural breeze" disabled><span aria-hidden="true">≈</span> Breeze</button></div>
-          <input id="fan-speed" type="range" min="0" max="6" step="1" value="0" aria-valuetext="Unknown" disabled>
-          <div class="range-ends"><span>Off</span><span id="speed-low-label">Low</span><span id="speed-high-label">High</span></div>
-          <div class="direction-options" role="group" aria-label="Fan direction"><button id="direction-forward" aria-pressed="false" disabled><span class="direction-arrow" aria-hidden="true">↓</span><span>Summer<small>Air down</small></span><span class="radio" aria-hidden="true"></span></button><button id="direction-reverse" aria-pressed="false" disabled><span class="direction-arrow" aria-hidden="true">↑</span><span>Winter<small>Air up</small></span><span class="radio" aria-hidden="true"></span></button></div>
-        </section>
-        <section class="light-section" aria-label="Light controls">
-          <button id="light-power" class="power-control" role="switch" aria-label="Light power" aria-checked="false" disabled><span class="device-icon bulb-icon"><svg viewBox="0 0 40 44" aria-hidden="true"><path d="M13 27c-4-3-6-6-6-11a13 13 0 0 1 26 0c0 5-2 8-6 11-2 2-2 4-2 6H15c0-2 0-4-2-6Z"/><path d="M16 38h8M18 42h4"/></svg></span><span class="device-title"><strong>Light</strong><small id="light-status">Checking…</small></span><span class="power-indicator"><span id="light-power-label">—</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9M7 5.5a8 8 0 1 0 10 0"/></svg></span></button>
-          <div class="slider-label"><label for="light-brightness">Brightness</label><output id="light-brightness-value" for="light-brightness">—</output></div>
-          <input id="light-brightness" type="range" min="0" max="100" step="1" value="0" aria-valuetext="Unknown" disabled>
-          <div class="range-ends brightness-ends"><span>Off</span><span>100%</span></div>
-        </section>
-      </div>
-      <footer><span>Tap an icon to turn on or off.</span><button id="refresh" aria-label="Refresh fan status">↻</button></footer>
-      <p id="feedback" role="status" aria-live="polite"></p>
-    </main>
-  </div>
-  <dialog id="help"><div class="dialog-top"><span class="eyebrow">AT HOME. ON YOUR NETWORK.</span><button id="help-close" class="close" aria-label="Close setup">×</button></div><h2>One tap from your iPhone.</h2><p>Open this address in Safari while you’re at home:</p><div id="phone-links" class="phone-links"></div><p>Tap <strong>Share → Add to Home Screen</strong>. On your Mac, open <strong>Fan Control.app</strong>.</p><div class="help-note"><strong>The Mac is your bridge.</strong><p>Keep Fan Control open and your Mac awake. Quitting the app stops iPhone access and Apple Home controls; the fan keeps its current settings.</p></div><details><summary>Connection details</summary><dl><dt>Fan address</dt><dd id="fan-address">—</dd><dt>Fan MAC</dt><dd id="fan-mac">—</dd><dt>Last response</dt><dd id="last-response">Not yet connected</dd></dl><p>If the fan is on an isolated IoT network, allow this Mac to reach the fan on TCP port 80. The iPhone must be able to reach the Mac on port 8787.</p><p>Local access only. Devices allowed to reach this page on your home network can use its controls.</p></details></dialog>
-  <dialog id="home-setup" aria-labelledby="home-title">
-    <div class="dialog-top"><span class="eyebrow">WORKS WITH YOUR APPLE TV</span><button id="home-close" class="close" aria-label="Close Apple Home setup">×</button></div>
-    <h2 id="home-title">Add to Apple Home.</h2>
-    <p id="home-status" role="status">Checking the bridge…</p>
-    <div id="home-pairing" hidden>
-      <img id="home-qr" class="home-qr" alt="Apple Home pairing QR code" width="220" height="220">
-      <p class="home-code"><span>Setup code</span><strong id="home-code"></strong></p>
-      <ol class="home-steps"><li>On your iPhone, open <strong>Home → + → Add Accessory</strong>.</li><li>Scan this code. If Home says “Uncertified Accessory,” choose <strong>Add Anyway</strong> for this local bridge.</li><li>Add <strong>Ceiling Fan</strong> and <strong>Ceiling Light</strong> to your room.</li></ol>
+        </div>
+      </header>
+      <main>
+        <div class="heading">
+          <h1 id="room-name">Ceiling fan</h1>
+          <div id="connection" class="connection" role="status">
+            <span class="dot"></span><span id="connection-label">Connecting</span>
+          </div>
+        </div>
+        <nav class="view-tabs" aria-label="Fan Control views">
+          <button id="controls-tab" aria-current="page" aria-controls="controls-view">
+            Controls
+          </button>
+          <button id="schedules-tab" aria-controls="schedules-view">Schedules</button>
+        </nav>
+        <div id="controls-view">
+          <div id="notice" class="notice" hidden>
+            <div>
+              <strong id="notice-title"></strong>
+              <p id="notice-text"></p>
+            </div>
+            <button id="retry">Retry ↻</button>
+          </div>
+          <div class="control-panel">
+            <section class="fan-section" aria-label="Fan controls">
+              <button
+                id="fan-power"
+                class="power-control"
+                role="switch"
+                aria-label="Fan power"
+                aria-checked="false"
+                disabled
+              >
+                <span class="device-icon fan-icon"
+                  ><svg viewBox="0 0 100 100" aria-hidden="true">
+                    <g>
+                      <path d="M49 45C20 39 27 9 47 11C69 13 65 33 54 45Z" />
+                      <path
+                        d="M49 45C20 39 27 9 47 11C69 13 65 33 54 45Z"
+                        transform="rotate(120 50 50)"
+                      />
+                      <path
+                        d="M49 45C20 39 27 9 47 11C69 13 65 33 54 45Z"
+                        transform="rotate(240 50 50)"
+                      />
+                      <circle cx="50" cy="50" r="8" />
+                    </g></svg
+                ></span>
+                <span class="device-title"
+                  ><strong>Fan</strong><small id="fan-status">Checking…</small></span
+                ><span class="power-indicator"
+                  ><span id="fan-power-label">—</span
+                  ><svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 3v9M7 5.5a8 8 0 1 0 10 0" /></svg
+                ></span>
+              </button>
+              <div class="slider-label">
+                <div class="slider-title">
+                  <label id="speed-label" for="fan-speed">Speed</label
+                  ><output id="fan-speed-value" for="fan-speed">—</output>
+                </div>
+                <button
+                  id="breeze"
+                  aria-pressed="false"
+                  aria-label="Breeze mode"
+                  title="Vary fan speed like a natural breeze"
+                  disabled
+                >
+                  <span aria-hidden="true">≈</span> Breeze
+                </button>
+              </div>
+              <input
+                id="fan-speed"
+                type="range"
+                min="0"
+                max="6"
+                step="1"
+                value="0"
+                aria-valuetext="Unknown"
+                disabled
+              />
+              <div class="range-ends">
+                <span>Off</span><span id="speed-low-label">Low</span
+                ><span id="speed-high-label">High</span>
+              </div>
+              <div class="direction-options" role="group" aria-label="Fan direction">
+                <button id="direction-forward" aria-pressed="false" disabled>
+                  <span class="direction-arrow" aria-hidden="true">↓</span
+                  ><span>Summer<small>Air down</small></span
+                  ><span class="radio" aria-hidden="true"></span></button
+                ><button id="direction-reverse" aria-pressed="false" disabled>
+                  <span class="direction-arrow" aria-hidden="true">↑</span
+                  ><span>Winter<small>Air up</small></span
+                  ><span class="radio" aria-hidden="true"></span>
+                </button>
+              </div>
+            </section>
+            <section class="light-section" aria-label="Light controls">
+              <button
+                id="light-power"
+                class="power-control"
+                role="switch"
+                aria-label="Light power"
+                aria-checked="false"
+                disabled
+              >
+                <span class="device-icon bulb-icon"
+                  ><svg viewBox="0 0 40 44" aria-hidden="true">
+                    <path
+                      d="M13 27c-4-3-6-6-6-11a13 13 0 0 1 26 0c0 5-2 8-6 11-2 2-2 4-2 6H15c0-2 0-4-2-6Z"
+                    />
+                    <path d="M16 38h8M18 42h4" /></svg></span
+                ><span class="device-title"
+                  ><strong>Light</strong><small id="light-status">Checking…</small></span
+                ><span class="power-indicator"
+                  ><span id="light-power-label">—</span
+                  ><svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 3v9M7 5.5a8 8 0 1 0 10 0" /></svg
+                ></span>
+              </button>
+              <div class="slider-label">
+                <label for="light-brightness">Brightness</label
+                ><output id="light-brightness-value" for="light-brightness">—</output>
+              </div>
+              <input
+                id="light-brightness"
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                value="0"
+                aria-valuetext="Unknown"
+                disabled
+              />
+              <div class="range-ends brightness-ends"><span>Off</span><span>100%</span></div>
+            </section>
+          </div>
+          <footer>
+            <span>Tap an icon to turn on or off.</span
+            ><button id="refresh" aria-label="Refresh fan status">↻</button>
+          </footer>
+          <p id="feedback" role="status" aria-live="polite"></p>
+        </div>
+        <div id="schedules-view" hidden>
+          <div class="schedules-heading">
+            <h2>Schedules</h2>
+            <button id="schedule-add" class="primary-button">Add schedule</button>
+          </div>
+          <p id="schedules-error" class="form-error" role="alert" hidden></p>
+          <div id="schedule-list" class="schedule-list" aria-live="polite"></div>
+          <div id="schedule-empty" class="schedule-empty" hidden>
+            <p>No schedules.</p>
+          </div>
+          <button id="schedule-settings-open" class="settings-row">
+            <span>Location &amp; time</span><span id="schedule-zone">Loading…</span
+            ><span aria-hidden="true">›</span>
+          </button>
+          <p class="schedule-note">
+            Keep Fan Control open and your Mac awake. Missed actions are skipped.
+          </p>
+          <details id="schedule-history">
+            <summary>Recent activity</summary>
+            <div id="schedule-runs"></div>
+          </details>
+        </div>
+      </main>
     </div>
-    <div id="home-paired" hidden><div class="home-success">Fan and light paired</div><p>They are now available in Home for controls, scenes, and Siri.</p><p>To automate them, open <strong>Home → Automation → +</strong> on your iPhone, choose a time or trigger, then select the fan or light.</p></div>
-    <div class="help-note"><strong>Keep this app open and your Mac awake.</strong><p>Your Apple TV sends Home commands through this Mac. Closing Fan Control makes these Home accessories unavailable. The fan’s existing schedule stays on the fan.</p></div>
-    <details><summary>Having trouble pairing?</summary><p>Allow Local Network access if macOS asks. For the first pairing, put the iPhone and Mac on the same network. Your Apple TV also needs to reach this Mac for automations.</p><p>If your IoT network is isolated, HomeKit needs local discovery (mDNS) and TCP port 51826 between the Apple devices and this Mac. No router settings have been changed.</p></details>
-  </dialog>
-</body>
+    <dialog id="schedule-editor" aria-labelledby="schedule-editor-title">
+      <div class="dialog-top">
+        <h2 id="schedule-editor-title">New schedule</h2>
+        <button id="schedule-editor-close" class="close" aria-label="Close schedule editor">
+          ×
+        </button>
+      </div>
+      <form id="schedule-form">
+        <label class="form-field"
+          >Name<input id="schedule-name" maxlength="60" required placeholder="Evening lights"
+        /></label>
+        <div class="form-row">
+          <label class="form-field"
+            >Start<select id="schedule-trigger">
+              <option value="time">At a time</option>
+              <option value="sunset">At sunset</option>
+            </select></label
+          >
+          <label id="schedule-time-field" class="form-field"
+            >Time<input id="schedule-time" type="time" value="18:00" required
+          /></label>
+          <label id="schedule-offset-field" class="form-field" hidden
+            >Minutes from sunset<input
+              id="schedule-offset"
+              type="number"
+              min="-120"
+              max="120"
+              step="1"
+              value="0"
+          /></label>
+        </div>
+        <p id="schedule-sunset-hint" class="field-note" hidden>
+          Negative minutes start before sunset.
+          <button type="button" id="schedule-location-link" class="text-button">
+            Set your location
+          </button>
+        </p>
+        <fieldset class="day-field">
+          <legend>Repeat</legend>
+          <div id="schedule-days" class="day-picker"></div>
+        </fieldset>
+        <div class="schedule-actions">
+          <label class="form-field"
+            >Light<select id="schedule-light">
+              <option value="keep">Leave as is</option>
+              <option value="on">Turn on</option>
+              <option value="off">Turn off</option>
+            </select></label
+          >
+          <div id="schedule-brightness-field" hidden>
+            <div class="slider-label">
+              <label for="schedule-brightness">Brightness</label
+              ><output id="schedule-brightness-value">70%</output>
+            </div>
+            <input id="schedule-brightness" type="range" min="1" max="100" value="70" />
+          </div>
+          <label class="form-field"
+            >Fan<select id="schedule-fan">
+              <option value="keep">Leave as is</option>
+              <option value="on">Turn on</option>
+              <option value="off">Turn off</option>
+            </select></label
+          >
+          <div id="schedule-fan-options" hidden>
+            <label class="form-field"
+              >Mode<select id="schedule-fan-mode">
+                <option value="keep">Keep current speed &amp; Breeze</option>
+                <option value="steady">Steady speed</option>
+                <option value="breeze">Breeze</option>
+              </select></label
+            >
+            <div id="schedule-speed-field" hidden>
+              <div class="slider-label">
+                <label id="schedule-speed-label" for="schedule-speed">Speed</label
+                ><output id="schedule-speed-value">3 / 6</output>
+              </div>
+              <input id="schedule-speed" type="range" min="1" max="6" value="3" />
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <label class="form-field"
+            >Afterwards<select id="schedule-after">
+              <option value="leave">Leave at these settings</option>
+              <option value="off">Turn off after…</option>
+            </select></label
+          >
+          <label id="schedule-duration-field" class="form-field" hidden
+            >Hours<input
+              id="schedule-duration"
+              type="number"
+              min="0.25"
+              max="24"
+              step="0.25"
+              value="3"
+          /></label>
+        </div>
+        <p id="schedule-after-hint" class="field-note" hidden>
+          Turns off only the devices this schedule turns on, even if you adjust them in the
+          meantime.
+        </p>
+        <label class="checkbox-field"
+          ><input id="schedule-enabled" type="checkbox" checked /> Schedule enabled</label
+        >
+        <p id="schedule-edit-note" class="field-note" hidden>
+          Saving or deleting cancels this schedule’s pending off timer.
+        </p>
+        <p id="schedule-form-error" class="form-error" role="alert" hidden></p>
+        <div class="form-buttons">
+          <button type="button" id="schedule-delete" class="danger-button" hidden>Delete</button
+          ><button type="button" id="schedule-cancel" class="secondary-button">Cancel</button
+          ><button type="submit" id="schedule-save" class="primary-button">Save schedule</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="schedule-settings" aria-labelledby="schedule-settings-title">
+      <div class="dialog-top">
+        <h2 id="schedule-settings-title">Location &amp; time</h2>
+        <button id="schedule-settings-close" class="close" aria-label="Close location settings">
+          ×
+        </button>
+      </div>
+      <p>Your location is used to calculate sunset on this Mac. It stays in your local settings.</p>
+      <form id="schedule-settings-form">
+        <button type="button" id="schedule-use-location" class="secondary-button">
+          Use my location
+        </button>
+        <p id="schedule-location-status" class="field-note" role="status"></p>
+        <div class="form-row">
+          <label class="form-field"
+            >Latitude<input
+              id="schedule-latitude"
+              type="number"
+              min="-90"
+              max="90"
+              step="any"
+              placeholder="e.g. 40.71" /></label
+          ><label class="form-field"
+            >Longitude<input
+              id="schedule-longitude"
+              type="number"
+              min="-180"
+              max="180"
+              step="any"
+              placeholder="e.g. -74.01"
+          /></label>
+        </div>
+        <p class="field-note">
+          Approximate coordinates for your town are enough. Leave both blank to use only fixed
+          times.
+        </p>
+        <label class="form-field"
+          >Time zone<input
+            id="schedule-time-zone"
+            list="schedule-time-zones"
+            required
+            placeholder="America/New_York" /><datalist id="schedule-time-zones"></datalist
+        ></label>
+        <p class="field-note">All schedules use this time zone, including daylight saving time.</p>
+        <p id="schedule-settings-error" class="form-error" role="alert" hidden></p>
+        <div class="form-buttons">
+          <button type="button" id="schedule-settings-cancel" class="secondary-button">
+            Cancel</button
+          ><button type="submit" id="schedule-settings-save" class="primary-button">
+            Save settings
+          </button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="help">
+      <div class="dialog-top">
+        <h2>iPhone access</h2>
+        <button id="help-close" class="close" aria-label="Close setup">×</button>
+      </div>
+      <p>Open this address in Safari while you’re at home:</p>
+      <div id="phone-links" class="phone-links"></div>
+      <p>
+        Tap <strong>Share → Add to Home Screen</strong>. On your Mac, open
+        <strong>Fan Control.app</strong>.
+      </p>
+      <div class="help-note">
+        <strong>The Mac is your bridge.</strong>
+        <p>
+          Keep Fan Control open and your Mac awake. Quitting the app stops iPhone access and Apple
+          Home controls and schedules; the fan keeps its current settings.
+        </p>
+      </div>
+      <details>
+        <summary>Connection details</summary>
+        <dl>
+          <dt>Fan address</dt>
+          <dd id="fan-address">—</dd>
+          <dt>Fan MAC</dt>
+          <dd id="fan-mac">—</dd>
+          <dt>Last response</dt>
+          <dd id="last-response">Not yet connected</dd>
+        </dl>
+        <p>
+          If the fan is on an isolated IoT network, allow this Mac to reach the fan on TCP port 80.
+          The iPhone must be able to reach the Mac on port 8787.
+        </p>
+        <p>
+          Local access only. Devices allowed to reach this page on your home network can use its
+          controls.
+        </p>
+      </details>
+    </dialog>
+    <dialog id="home-setup" aria-labelledby="home-title">
+      <div class="dialog-top">
+        <h2 id="home-title">Apple Home</h2>
+        <button id="home-close" class="close" aria-label="Close Apple Home setup">×</button>
+      </div>
+      <p id="home-status" role="status">Checking the bridge…</p>
+      <div id="home-pairing" hidden>
+        <img
+          id="home-qr"
+          class="home-qr"
+          alt="Apple Home pairing QR code"
+          width="220"
+          height="220"
+        />
+        <p class="home-code"><span>Setup code</span><strong id="home-code"></strong></p>
+        <ol class="home-steps">
+          <li>On your iPhone, open <strong>Home → + → Add Accessory</strong>.</li>
+          <li>
+            Scan this code. If Home says “Uncertified Accessory,” choose
+            <strong>Add Anyway</strong> for this local bridge.
+          </li>
+          <li>Add <strong>Ceiling Fan</strong> and <strong>Ceiling Light</strong> to your room.</li>
+        </ol>
+      </div>
+      <div id="home-paired" hidden>
+        <div class="home-success">Fan and light paired</div>
+        <p>They are now available in Home for controls, scenes, and Siri.</p>
+        <p>
+          To automate them, open <strong>Home → Automation → +</strong> on your iPhone, choose a
+          time or trigger, then select the fan or light.
+        </p>
+      </div>
+      <div class="help-note">
+        <strong>Keep this app open and your Mac awake.</strong>
+        <p>
+          Your Apple TV sends Home commands through this Mac. Closing Fan Control makes these Home
+          accessories unavailable. The fan’s existing schedule stays on the fan.
+        </p>
+      </div>
+      <details>
+        <summary>Having trouble pairing?</summary>
+        <p>
+          Allow Local Network access if macOS asks. For the first pairing, put the iPhone and Mac on
+          the same network. Your Apple TV also needs to reach this Mac for automations.
+        </p>
+        <p>
+          If your IoT network is isolated, HomeKit needs local discovery (mDNS) and TCP port 51826
+          between the Apple devices and this Mac. No router settings have been changed.
+        </p>
+      </details>
+    </dialog>
+  </body>
 </html>

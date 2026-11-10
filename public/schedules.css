@@ -1,0 +1,350 @@
+[hidden] {
+  display: none !important;
+}
+.view-tabs {
+  display: flex;
+  padding: 4px;
+  gap: 4px;
+  border-radius: 14px;
+  background: #e9ede2;
+  margin-bottom: 20px;
+}
+.view-tabs button {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  border-radius: 10px;
+  padding: 10px;
+  color: #748365;
+  font-size: 12px;
+  font-weight: 550;
+}
+.view-tabs button[aria-current] {
+  background: #fff;
+  color: #385b3b;
+  box-shadow: 0 1px 4px #30422c0a;
+}
+.schedules-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 25px 2px 20px;
+}
+.schedules-heading h2 {
+  font-size: 23px;
+  font-weight: 550;
+  letter-spacing: -0.7px;
+}
+.primary-button,
+.secondary-button,
+.danger-button {
+  border: 0;
+  border-radius: 12px;
+  padding: 11px 15px;
+  font-size: 12px;
+  font-weight: 550;
+}
+.primary-button {
+  background: #4d7043;
+  color: #fff;
+}
+.secondary-button {
+  background: #e9eee1;
+  color: #526b43;
+}
+.danger-button {
+  background: #f5e9e3;
+  color: #995f47;
+  margin-right: auto;
+}
+.schedule-empty {
+  text-align: center;
+  padding: 24px 20px;
+  background: #fcfdf9;
+  border: 1px solid #e4e9db;
+  border-radius: 16px;
+}
+.schedule-empty p {
+  font-size: 13px;
+  color: #819075;
+  margin: 0;
+}
+.schedule-list {
+  display: grid;
+  gap: 12px;
+}
+.schedule-card {
+  padding: 19px;
+  border-radius: 20px;
+  background: #fff;
+  border: 1px solid #e4e9db;
+}
+.schedule-card-top {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.schedule-edit {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: none;
+}
+.schedule-edit strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 550;
+  overflow-wrap: anywhere;
+}
+.schedule-edit span {
+  display: block;
+  font-size: 11px;
+  margin: 7px 0 12px;
+  color: #7b8775;
+}
+.schedule-toggle {
+  flex-shrink: 0;
+  width: 37px;
+  height: 23px;
+  border: 0;
+  border-radius: 20px;
+  background: #dbe2d3;
+  padding: 3px;
+}
+.schedule-toggle::before {
+  content: '';
+  display: block;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s;
+}
+.schedule-toggle[aria-checked='true'] {
+  background: #7d9a63;
+}
+.schedule-toggle[aria-checked='true']::before {
+  transform: translateX(14px);
+}
+.schedule-description {
+  font-size: 12px;
+  line-height: 1.8;
+  color: #5c7052;
+}
+.schedule-next {
+  font-size: 10px;
+  color: #89957d;
+  margin-top: 10px;
+}
+.settings-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: 0;
+  border-top: 1px solid #e0e6d8;
+  border-bottom: 1px solid #e0e6d8;
+  color: #5c7052;
+  padding: 16px 2px;
+  margin-top: 24px;
+  text-align: left;
+  font-size: 12px;
+}
+#schedule-zone {
+  margin-left: auto;
+  font-size: 10px;
+  color: #89957d;
+  text-align: right;
+}
+.schedule-note {
+  font-size: 11px;
+  line-height: 1.7;
+  color: #8a967e;
+  margin: 14px 2px 22px;
+}
+#schedule-history {
+  padding: 0;
+  border: 0;
+  margin-bottom: 20px;
+}
+.schedule-run {
+  padding: 13px 0;
+  border-bottom: 1px solid #e0e6d8;
+}
+.schedule-run strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+}
+.schedule-run span {
+  display: block;
+  font-size: 10px;
+  color: #87957b;
+  margin-top: 5px;
+}
+.schedule-run p {
+  font-size: 11px;
+  color: #987651;
+  margin-top: 6px;
+  line-height: 1.5;
+}
+.form-field {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+  color: #647757;
+  margin: 0 0 16px;
+  min-width: 0;
+}
+.form-field input,
+.form-field select {
+  font: inherit;
+  font-size: 14px;
+  color: #35492f;
+  width: 100%;
+  min-height: 42px;
+  min-width: 0;
+  background: #fff;
+  border: 1px solid #dce4d2;
+  border-radius: 10px;
+  padding: 10px;
+}
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+.day-field {
+  padding: 0;
+  margin: 5px 0 22px;
+  border: 0;
+}
+.day-field legend {
+  font-size: 12px;
+  color: #647757;
+  margin-bottom: 12px;
+}
+.day-picker {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+.day-picker label {
+  flex: 1;
+  position: relative;
+  cursor: pointer;
+}
+.day-picker input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+.day-picker span {
+  display: grid;
+  place-items: center;
+  height: 36px;
+  border-radius: 11px;
+  color: #8c9b7e;
+  background: #f0f3ea;
+  border: 1px solid #e2e8d8;
+  font-size: 12px;
+}
+.day-picker input:checked + span {
+  background: #e1ebd4;
+  border-color: #cbdcb6;
+  color: #4c6c3c;
+}
+.day-picker input:focus-visible + span {
+  outline: 3px solid #91ae7b;
+  outline-offset: 3px;
+}
+.schedule-actions {
+  padding: 18px 0 2px;
+  border-top: 1px solid #e0e6d8;
+  border-bottom: 1px solid #e0e6d8;
+  margin-bottom: 20px;
+}
+#schedule-brightness-field,
+#schedule-speed-field {
+  margin: -8px 0 18px;
+}
+#schedule-brightness-field .slider-label,
+#schedule-speed-field .slider-label {
+  margin-top: 0;
+}
+#schedule-brightness {
+  --track: #f0d8a8;
+  --thumb: #c8a261;
+}
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #647757;
+  font-size: 12px;
+  margin: 20px 0;
+}
+.checkbox-field input {
+  accent-color: #6a8a50;
+  width: 17px;
+  height: 17px;
+}
+dialog .field-note,
+.field-note {
+  font-size: 11px;
+  line-height: 1.6;
+  color: #8a967e;
+  margin: -4px 0 18px;
+}
+dialog .form-error,
+.form-error {
+  color: #9b633e;
+  background: #f7eddf;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+.form-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 22px;
+  flex-wrap: wrap;
+}
+.text-button {
+  border: 0;
+  padding: 0;
+  font-size: inherit;
+  color: #537542;
+  text-decoration: underline;
+  background: none;
+}
+#schedule-location-status {
+  margin: 12px 0 18px;
+}
+select:focus-visible {
+  outline: 3px solid #91ae7b;
+  outline-offset: 3px;
+}
+@media (max-width: 390px) {
+  .schedules-heading h2 {
+    font-size: 21px;
+  }
+  .day-picker {
+    gap: 4px;
+  }
+  #schedule-editor {
+    padding: 21px;
+  }
+}
