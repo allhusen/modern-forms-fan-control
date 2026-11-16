@@ -27,16 +27,16 @@ npm ci
 cp config.example.json config.json
 ```
 
-Edit `config.json` with the fan's local IPv4 address and Wi-Fi station MAC address. The supplied address and MAC are examples; replace both. Local configuration is ignored by Git. The default controller port is 8787 and the HomeKit port is 51826; an optional `homeKitPort` can override the latter.
+In the repo's `config.json`, set `fanHost` to the fan's hostname (for example, `fan.local` if it resolves on your Mac) or local IPv4 address. Set `fanMac` to the fan's Wi-Fi station MAC in colon-separated form. Replace both example values. The app uses the hostname or IP to connect and compares the MAC with the device ID returned by the fan before sending control commands. Hostnames must resolve to a local IPv4 address from the Mac running Fan Control. Local configuration is ignored by Git. The default controller port is 8787 and the HomeKit port is 51826; an optional `homeKitPort` can override the latter.
 
 ```sh
 npm test
 npm run build:mac
 ```
 
-The build produces `dist/Fan Control.zip`. Extract it and move **Fan Control.app** to `~/Applications` or `/Applications`. Quit an older copy before replacing it. The build downloads a pinned official Node.js runtime, verifies its SHA-256, compiles the native window, and signs the bundle locally. It is not notarized for public distribution.
+`npm run build:mac` produces `dist/Fan Control.zip`. The plain `npm run build` command only compiles the controller. Extract it and move **Fan Control.app** to `~/Applications` or `/Applications`. Quit an older copy before replacing it. The build downloads a pinned official Node.js runtime, verifies its SHA-256, compiles the native window, and signs the bundle locally. It is not notarized for public distribution.
 
-On first launch, the app copies the configured fan settings into `~/Library/Application Support/Fan Control/config.json`. Subsequent launches use that saved configuration. To change the fan later, edit that saved file and restart the app. Updating the app preserves saved configuration and HomeKit pairings.
+On first launch, the app copies the configured fan settings into `~/Library/Application Support/Fan Control/config.json`. Subsequent launches use that saved configuration. To change the fan address or MAC, open **Fan Control → Settings…** (⌘,), edit the fields, and click **Save**. The app applies the settings by restarting its controller. Updating the app preserves the saved configuration and HomeKit pairings. If an older build still uses a stale IP, quit it, edit `fanHost` and `fanMac` in the Application Support file above, then reopen the app.
 
 The build includes your local `config.json` as its first-launch default. Treat a locally built archive as personalized; review that configuration before sharing a binary.
 

@@ -12,6 +12,15 @@ test('the example configuration is valid without personal device details', () =>
   assert.deepEqual(validateConfig(example), example);
 });
 
+test('fanHost accepts DNS and mDNS names without URL components', () => {
+  for (const fanHost of ['ceiling-fan.local', 'fan.home.arpa.']) {
+    assert.equal(validateConfig({ ...example, fanHost }).fanHost, fanHost);
+  }
+  for (const fanHost of ['http://fan.local', 'fan.local:80', 'fan.local/mf', 'fan..local']) {
+    assert.throws(() => validateConfig({ ...example, fanHost }), /fanHost/);
+  }
+});
+
 test('configuration errors identify the field that needs attention', () => {
   for (const value of [null, [], 'fan']) assert.throws(() => validateConfig(value), /object/);
   for (const [field, value, message] of [

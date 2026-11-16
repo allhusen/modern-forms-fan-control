@@ -1,6 +1,16 @@
 import { isIP } from 'node:net';
 import { networkInterfaces, hostname } from 'node:os';
 
+export function isFanHostname(host: string): boolean {
+  const labels = host.replace(/\.$/, '').split('.');
+  return (
+    host.length <= 253 &&
+    labels.length > 1 &&
+    /[a-z]/i.test(labels.at(-1) ?? '') &&
+    labels.every((label) => /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i.test(label))
+  );
+}
+
 export function isLocalAddress(address: unknown = '') {
   if (typeof address !== 'string') return false;
   const ip = address.replace(/^::ffff:/i, '');

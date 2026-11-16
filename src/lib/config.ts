@@ -2,7 +2,7 @@ import type { FanConfig } from './types.js';
 import { hasErrorCode, isIntegerBetween, isRecord } from './validation.js';
 import { readFile } from 'node:fs/promises';
 import { isIP } from 'node:net';
-import { isLocalAddress } from './network.js';
+import { isFanHostname, isLocalAddress } from './network.js';
 
 export const DEFAULT_HOMEKIT_PORT = 51826;
 
@@ -19,10 +19,12 @@ export function validateConfig(config: unknown): FanConfig {
   }
   if (
     typeof config.fanHost !== 'string' ||
-    isIP(config.fanHost) !== 4 ||
-    !isLocalAddress(config.fanHost)
+    !(
+      (isIP(config.fanHost) === 4 && isLocalAddress(config.fanHost)) ||
+      isFanHostname(config.fanHost)
+    )
   ) {
-    throw new Error('fanHost must be a local IPv4 address.');
+    throw new Error('fanHost must be a local IPv4 address or a hostname such as fan.local.');
   }
   if (typeof config.fanMac !== 'string' || !/^([\da-f]{2}:){5}[\da-f]{2}$/i.test(config.fanMac)) {
     throw new Error('fanMac must be a MAC address.');

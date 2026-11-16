@@ -1,3 +1,5 @@
+import { lookup } from 'node:dns/promises';
+import { isFanHostname, isLocalAddress } from './network.js';
 import type {
   BreezeStrength,
   FanCommand,
@@ -86,7 +88,6 @@ type FanOptions = Pick<FanConfig, 'fanHost' | 'fanMac'> & {
 };
 
 export class Fan implements FanController {
-  private readonly url: string;
   private readonly host: string;
   private readonly mac: string;
   private readonly timeoutMs: number;
@@ -98,7 +99,6 @@ export class Fan implements FanController {
   private pendingRead: Promise<OnlineSnapshot> | null = null;
 
   constructor({ fanHost, fanMac, timeoutMs = 8000, fetchImpl = fetch }: FanOptions) {
-    this.url = `http://${fanHost}/mf`;
     this.host = fanHost;
     this.mac = fanMac.replaceAll(':', '').toUpperCase();
     this.timeoutMs = timeoutMs;
@@ -115,9 +115,22 @@ export class Fan implements FanController {
     return result;
   }
 
-  private async request(body: FanCommand | { queryDynamicShadowData: 1 }): Promise<unknown> {
+  private async resolveUrl(): Promise<string> {
+    if (!isFanHostname(this.host)) return `http://${this.host}/mf`;
+    const addresses = await lookup(this.host, { family: 4, all: true }).catch(() => []);
+    const local = addresses.find(({ address }) => isLocalAddress(address));
+    if (!local) {
+      throw new FanError(`Cannot resolve ${this.host} to a local IPv4 address.`, 503);
+    }
+    return `http://${local.address}/mf`;
+  }
+
+  private async request(
+    url: string,
+    body: FanCommand | { queryDynamicShadowData: 1 },
+  ): Promise<unknown> {
     try {
-      const response = await this.fetch(this.url, {
+      const response = await this.fetch(url, {
         method: 'POST',
         redirect: 'error',
         headers: { 'Content-Type': 'application/json', Connection: 'close' },
@@ -141,7 +154,7 @@ export class Fan implements FanController {
       typeof raw.clientId === 'string' ? raw.clientId.split('_').at(-1)?.toUpperCase() : '';
     if (id !== this.mac) {
       throw new FanError(
-        'The device identity does not match your fan. Check its IP address and MAC in config.json.',
+        'The device identity does not match your fan. Check fanHost and fanMac in config.json.',
       );
     }
     if (
@@ -193,7 +206,8 @@ export class Fan implements FanController {
         return snapshot;
       }
       try {
-        return this.accept(await this.request({ queryDynamicShadowData: 1 }));
+        const url = await this.resolveUrl();
+        return this.accept(await this.request(url, { queryDynamicShadowData: 1 }));
       } catch (error) {
         this.error = errorMessage(error);
         throw error;
@@ -208,7 +222,8 @@ export class Fan implements FanController {
   inspect(): Promise<Record<string, unknown>> {
     return this.serial(async () => {
       try {
-        const raw = await this.request({ queryDynamicShadowData: 1 });
+        const url = await this.resolveUrl();
+        const raw = await this.request(url, { queryDynamicShadowData: 1 });
         this.accept(raw);
         if (!isRecord(raw)) throw new FanError('The fan returned an invalid status.');
         return raw;
@@ -224,8 +239,9 @@ export class Fan implements FanController {
     if (typeof command !== 'function') validateCommand(command);
     return this.serial(async () => {
       try {
+        const url = await this.resolveUrl();
         // Verify identity and refresh settings before resolving a state-dependent command.
-        const current = this.accept(await this.request({ queryDynamicShadowData: 1 })).state;
+        const current = this.accept(await this.request(url, { queryDynamicShadowData: 1 })).state;
         const desired = {
           ...validateCommand(typeof command === 'function' ? command({ ...current }) : command),
         };
@@ -237,15 +253,15 @@ export class Fan implements FanController {
         }
         if (desired.fanOn === true && !desired.fanSpeed && current.fanSpeed === 0)
           desired.fanSpeed = 1;
-        const reply = await this.request(desired);
+        const reply = await this.request(url, desired);
         // Some firmware only acknowledges writes; read back in that case.
         const result =
           isRecord(reply) && reply.clientId && typeof reply.fanOn === 'boolean'
             ? reply
-            : await this.request({ queryDynamicShadowData: 1 });
+            : await this.request(url, { queryDynamicShadowData: 1 });
         let confirmed = this.accept(result);
         if (!confirms(confirmed.state, desired)) {
-          confirmed = this.accept(await this.request({ queryDynamicShadowData: 1 }));
+          confirmed = this.accept(await this.request(url, { queryDynamicShadowData: 1 }));
           if (!confirms(confirmed.state, desired)) {
             throw new FanError(
               'The fan responded but did not confirm the change. Its reported settings are shown.',

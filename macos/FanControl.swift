@@ -13,6 +13,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
     private var stopping = false
     private var starting = false
     private var ready = false
+    private var restarting = false
+    private var settingsFile: URL?
     private var signals: [DispatchSourceSignal] = []
     private let scheduleLocation = ScheduleLocation()
 
@@ -66,6 +68,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
         let menu = NSMenu()
         let appItem = NSMenuItem()
         let appMenu = NSMenu()
+        let settings = appMenu.addItem(
+            withTitle: "Settings…", action: #selector(editSettings), keyEquivalent: ",")
+        settings.target = self
+        appMenu.addItem(.separator())
         appMenu.addItem(
             withTitle: "Quit Fan Control", action: #selector(NSApplication.terminate(_:)),
             keyEquivalent: "q")
@@ -100,6 +106,81 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
         NSApp.windowsMenu = windowMenu
     }
 
+    @objc private func editSettings() {
+        guard let settingsFile else { return }
+        do {
+            let data = try Data(contentsOf: settingsFile)
+            guard var config = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            else { throw CocoaError(.fileReadCorruptFile) }
+
+            let host = NSTextField(string: config["fanHost"] as? String ?? "")
+            let mac = NSTextField(string: config["fanMac"] as? String ?? "")
+            let fields = NSGridView(views: [
+                [NSTextField(labelWithString: "Hostname or IPv4 address"), host],
+                [NSTextField(labelWithString: "Wi-Fi MAC address"), mac],
+            ])
+            host.widthAnchor.constraint(equalToConstant: 220).isActive = true
+            let alert = NSAlert()
+            alert.messageText = "Fan connection"
+            alert.accessoryView = fields
+            alert.addButton(withTitle: "Save")
+            alert.addButton(withTitle: "Cancel")
+            alert.window.initialFirstResponder = host
+
+            while alert.runModal() == .alertFirstButtonReturn {
+                config["fanHost"] = host.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+                config["fanMac"] = mac.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+                let updated = try JSONSerialization.data(
+                    withJSONObject: config, options: [.prettyPrinted, .sortedKeys])
+                if let error = try validateSettings(updated) {
+                    alert.informativeText = error
+                    continue
+                }
+                try updated.write(to: settingsFile, options: .atomic)
+                try FileManager.default.setAttributes(
+                    [.posixPermissions: 0o600], ofItemAtPath: settingsFile.path)
+                if let server, server.isRunning {
+                    restarting = true
+                    server.terminate()
+                } else {
+                    starting = false
+                    startController()
+                }
+                return
+            }
+        } catch {
+            NSAlert(error: error).runModal()
+        }
+    }
+
+    private func validateSettings(_ data: Data) throws -> String? {
+        let resources = Bundle.main.resourceURL!
+        let validator = Process()
+        let errors = Pipe()
+        validator.executableURL = resources.appendingPathComponent("node")
+        validator.currentDirectoryURL = resources.appendingPathComponent("controller")
+        validator.arguments = [
+            "--input-type=module", "-e",
+            """
+            import { validateConfig } from './build/lib/config.js';
+            try { validateConfig(JSON.parse(process.argv[1])); }
+            catch (error) { console.error(error.message); process.exitCode = 1; }
+            """,
+            String(decoding: data, as: UTF8.self),
+        ]
+        var environment = ProcessInfo.processInfo.environment
+        environment.removeValue(forKey: "NODE_OPTIONS")
+        validator.environment = environment
+        validator.standardError = errors
+        try validator.run()
+        let output = errors.fileHandleForReading.readDataToEndOfFile()
+        validator.waitUntilExit()
+        guard validator.terminationStatus != 0 else { return nil }
+        let message = String(decoding: output, as: UTF8.self)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return message.isEmpty ? "Could not validate fan settings." : message
+    }
+
     @objc private func reloadControls() {
         if server?.isRunning == true, ready {
             webView.reload()
@@ -126,6 +207,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
             try files.createDirectory(
                 at: data, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
             let configFile = data.appendingPathComponent("config.json")
+            settingsFile = configFile
             if !files.fileExists(atPath: configFile.path) {
                 try files.copyItem(
                     at: controller.appendingPathComponent("config.json"), to: configFile)
@@ -165,10 +247,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
             process.standardError = log
             process.terminationHandler = { [weak self] process in
                 DispatchQueue.main.async {
-                    guard let self else { return }
+                    guard let self, self.server === process else { return }
                     self.starting = false
                     self.ready = false
-                    if !self.stopping {
+                    if self.restarting, !self.stopping {
+                        self.restarting = false
+                        self.startController()
+                    } else if !self.stopping {
                         self.showError(
                             "The local controller stopped (code \(process.terminationStatus)). If an older controller is running, stop it first. Choose View → Reload Controls to try again. Details are in ~/Library/Application Support/Fan Control/controller.log."
                         )
