@@ -113,27 +113,42 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
             guard var config = try JSONSerialization.jsonObject(with: data) as? [String: Any]
             else { throw CocoaError(.fileReadCorruptFile) }
 
-            let host = NSTextField(string: config["fanHost"] as? String ?? "")
-            let mac = NSTextField(string: config["fanMac"] as? String ?? "")
-            let fields = NSGridView(views: [
-                [NSTextField(labelWithString: "Hostname or IPv4 address"), host],
-                [NSTextField(labelWithString: "Wi-Fi MAC address"), mac],
-            ])
-            host.widthAnchor.constraint(equalToConstant: 220).isActive = true
-            let alert = NSAlert()
-            alert.messageText = "Fan connection"
-            alert.accessoryView = fields
-            alert.addButton(withTitle: "Save")
-            alert.addButton(withTitle: "Cancel")
-            alert.window.initialFirstResponder = host
+            let panel = NSPanel(
+                contentRect: NSRect(x: 0, y: 0, width: 420, height: 185),
+                styleMask: [.titled], backing: .buffered, defer: false)
+            panel.title = "Fan Connection"
+            let content = panel.contentView!
+            let host = addSettingsField(
+                "Hostname or IPv4 address", value: config["fanHost"], y: 131, to: content)
+            let mac = addSettingsField(
+                "Wi-Fi MAC address", value: config["fanMac"], y: 77, to: content)
+            host.nextKeyView = mac
 
-            while alert.runModal() == .alertFirstButtonReturn {
+            let save = NSButton(title: "Save", target: self, action: #selector(finishSettings(_:)))
+            let cancel = NSButton(
+                title: "Cancel", target: self, action: #selector(finishSettings(_:)))
+            save.tag = NSApplication.ModalResponse.OK.rawValue
+            cancel.tag = NSApplication.ModalResponse.cancel.rawValue
+            save.keyEquivalent = "\r"
+            cancel.keyEquivalent = "\u{1b}"
+            save.frame = NSRect(x: 320, y: 16, width: 80, height: 32)
+            cancel.frame = NSRect(x: 232, y: 16, width: 80, height: 32)
+            content.addSubview(save)
+            content.addSubview(cancel)
+            panel.initialFirstResponder = host
+            panel.center()
+            defer { panel.orderOut(nil) }
+
+            while NSApp.runModal(for: panel) == .OK {
                 config["fanHost"] = host.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
                 config["fanMac"] = mac.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
                 let updated = try JSONSerialization.data(
                     withJSONObject: config, options: [.prettyPrinted, .sortedKeys])
                 if let error = try validateSettings(updated) {
+                    let alert = NSAlert()
+                    alert.messageText = "Check fan settings"
                     alert.informativeText = error
+                    alert.runModal()
                     continue
                 }
                 try updated.write(to: settingsFile, options: .atomic)
@@ -151,6 +166,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
         } catch {
             NSAlert(error: error).runModal()
         }
+    }
+
+    private func addSettingsField(
+        _ title: String, value: Any?, y: CGFloat, to content: NSView
+    ) -> NSTextField {
+        let label = NSTextField(labelWithString: title)
+        label.frame = NSRect(x: 20, y: y + 28, width: 380, height: 17)
+        let field = NSTextField(string: value as? String ?? "")
+        field.frame = NSRect(x: 20, y: y, width: 380, height: 24)
+        field.setAccessibilityLabel(title)
+        content.addSubview(label)
+        content.addSubview(field)
+        return field
+    }
+
+    @objc private func finishSettings(_ sender: NSButton) {
+        NSApp.stopModal(withCode: NSApplication.ModalResponse(rawValue: sender.tag))
     }
 
     private func validateSettings(_ data: Data) throws -> String? {
